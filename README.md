@@ -1,0 +1,2 @@
+# Democracy Discord Bot
+ Yes
