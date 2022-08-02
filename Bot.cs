@@ -23,8 +23,6 @@ public class Bot {
         _client.Ready += ClientReady;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.MessageReceived += MessageHandler.OnMessage;
-        
-        TimeCheckService.StartThread(_client);
 
         await _client.LoginAsync(TokenType.Bot, Program.Config!["token"]);
         await _client.StartAsync();
@@ -46,7 +44,8 @@ public class Bot {
     
     private async Task ClientReady() {
         Logger.Debug("Client ready");
-        await _client!.SetGameAsync("serble.net");
+        await _client!.SetGameAsync("Fuck communism");
+        TimeCheckService.StartThread(_client);
     }
     
     private static Task Log(LogMessage msg) {
