@@ -32,5 +32,9 @@ public class Poll {
         }
         return votes;
     }
+
+    public bool HasVoted(ulong user) {
+        return Votes.ContainsKey(user);
+    }
     
 }

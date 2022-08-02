@@ -6,12 +6,12 @@ public interface IStorageService {
     void Init();
     void Deinit();
 
-    void RegisterVote(long user, long vote);
+    void RegisterVote(ulong user, ulong vote);
     
-    Term GetCurrentTerm();
+    Term? GetCurrentTerm();
     void SetCurrentTerm(Term term);
     
-    Poll GetCurrentPoll();
+    Poll? GetCurrentPoll();
     void StartNewPoll();
-    void EndPoll(out long winner, out int votes);
+    void EndPoll(out ulong winner, out int votes);
 }
