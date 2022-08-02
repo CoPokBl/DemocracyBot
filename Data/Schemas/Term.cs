@@ -5,7 +5,7 @@ public class Term {
     /// <summary>
     /// The ID of the current president
     /// </summary>
-    public long PresidentId { get; set; }
+    public ulong PresidentId { get; set; }
     
     /// <summary>
     /// When the term started
