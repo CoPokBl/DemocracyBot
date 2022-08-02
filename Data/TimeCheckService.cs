@@ -63,6 +63,18 @@ public class TimeCheckService {
                 );
             }
         }
+        
+        if (poll == null && term == null) {
+            Program.StorageService.StartNewPoll();
+            
+            GetAnnouncementsChannel(client).SendMessageAsync(
+                embed: CommandManager.GetEmbed(
+                    "The New Poll has Started!", 
+                    $"Do /vote to vote for the next president!", 
+                    ResponseType.Success
+                ).Build()
+            );
+        }
     }
 
     private static SocketTextChannel GetAnnouncementsChannel(DiscordSocketClient client) {
