@@ -1,5 +1,6 @@
 ﻿using DemocracyBot.Commands;
 using DemocracyBot.Data;
+using DemocracyBot.Data.Storage;
 using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
@@ -11,10 +12,12 @@ internal static class Program {
     public const string Version = "0.0.1";
     public static Dictionary<string, string>? Config;
     public static Random Random { get; } = new ();
+    public static IStorageService StorageService { get; private set; }
 
     private static readonly Dictionary<string, string> DefaultConfig = new() {
         { "token", "discord bot token" },
-        { "testing_server_id", "911109182842602044" }
+        { "testing_server_id", "911109182842602044" },
+        { "storage_service", "file" }
     };
     
 
@@ -39,6 +42,18 @@ internal static class Program {
             Logger.Error("Failed to load config: " + e);
             Logger.WaitFlush();
             return 1;
+        }
+        
+        // Storage
+        switch (Config["storage_service"]) {
+            case "file":
+                StorageService = new FileStorageService();
+                break;
+            
+            default:
+                Logger.Error("Unknown storage service: " + Config["storage_service"]);
+                Logger.WaitFlush();
+                return 1;
         }
         
         if (args.Length != 0) {
