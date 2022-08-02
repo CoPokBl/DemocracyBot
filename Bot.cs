@@ -1,10 +1,10 @@
+using DemocracyBot.Commands;
+using DemocracyBot.EventHandlers;
 using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
-using SerbleBot.Commands;
-using SerbleBot.EventHandlers;
 
-namespace SerbleBot; 
+namespace DemocracyBot; 
 
 public class Bot {
     

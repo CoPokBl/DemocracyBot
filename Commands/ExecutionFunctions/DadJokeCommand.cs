@@ -1,8 +1,7 @@
-using System.Text.Json;
 using Discord.WebSocket;
 using GeneralPurposeLib;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class DadJokeCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

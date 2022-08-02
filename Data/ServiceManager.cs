@@ -1,4 +1,4 @@
-namespace SerbleBot.Data; 
+namespace DemocracyBot.Data; 
 
 public static class ServiceManager {
     

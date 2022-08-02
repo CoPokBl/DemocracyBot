@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using GeneralPurposeLib;
 
-namespace SerbleBot.Data; 
+namespace DemocracyBot.Data; 
 
 public static class LinkScannerService {
     private static int _submitRequestsRemaining = 1;

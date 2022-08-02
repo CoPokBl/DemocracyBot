@@ -1,7 +1,7 @@
+using DemocracyBot.Data;
 using Discord.WebSocket;
-using SerbleBot.Data;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class TruthCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

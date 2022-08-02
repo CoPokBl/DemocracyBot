@@ -1,6 +1,6 @@
 using Discord;
 
-namespace SerbleBot.Commands; 
+namespace DemocracyBot.Commands; 
 
 public class SlashCommandArgument {
     public string Name { get; set; }

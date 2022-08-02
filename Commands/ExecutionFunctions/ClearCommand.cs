@@ -2,7 +2,7 @@ using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class ClearCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

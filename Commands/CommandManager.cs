@@ -2,7 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
 
-namespace SerbleBot.Commands; 
+namespace DemocracyBot.Commands; 
 
 public static class CommandManager {
 

@@ -1,6 +1,6 @@
 using GeneralPurposeLib;
 
-namespace SerbleBot.Data; 
+namespace DemocracyBot.Data; 
 
 public static class TruthOrDareService {
 

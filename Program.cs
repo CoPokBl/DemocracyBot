@@ -1,10 +1,10 @@
-﻿using Discord;
+﻿using DemocracyBot.Commands;
+using DemocracyBot.Data;
+using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
-using SerbleBot.Commands;
-using SerbleBot.Data;
 
-namespace SerbleBot;
+namespace DemocracyBot;
 
 internal static class Program {
     

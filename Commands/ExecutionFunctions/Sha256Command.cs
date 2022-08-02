@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Discord.WebSocket;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class Sha256Command : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

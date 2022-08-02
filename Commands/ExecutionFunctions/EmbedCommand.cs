@@ -1,7 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class EmbedCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

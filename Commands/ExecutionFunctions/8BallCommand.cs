@@ -1,6 +1,6 @@
 using Discord.WebSocket;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class EightBallCommand : ICommandExecutionHandler {
     

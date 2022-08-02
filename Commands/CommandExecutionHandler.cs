@@ -1,6 +1,6 @@
 using Discord.WebSocket;
 
-namespace SerbleBot.Commands; 
+namespace DemocracyBot.Commands; 
 
 public interface ICommandExecutionHandler {
     public void Execute(SocketSlashCommand cmd, DiscordSocketClient client);

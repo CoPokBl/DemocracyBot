@@ -1,8 +1,8 @@
+using DemocracyBot.Data;
 using Discord.WebSocket;
 using GeneralPurposeLib;
-using SerbleBot.Data;
 
-namespace SerbleBot.Commands.ExecutionFunctions; 
+namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class ScanLinkCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {

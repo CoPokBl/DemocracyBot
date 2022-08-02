@@ -1,7 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 
-namespace SerbleBot.EventHandlers; 
+namespace DemocracyBot.EventHandlers; 
 
 public class MessageHandler {
 

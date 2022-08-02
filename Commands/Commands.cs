@@ -1,7 +1,7 @@
+using DemocracyBot.Commands.ExecutionFunctions;
 using Discord;
-using SerbleBot.Commands.ExecutionFunctions;
 
-namespace SerbleBot.Commands;
+namespace DemocracyBot.Commands;
 
 public static class Commands {
 

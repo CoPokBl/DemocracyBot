@@ -1,7 +1,6 @@
 using Discord.WebSocket;
-using SerbleBot.Data;
 
-namespace SerbleBot;
+namespace DemocracyBot;
 
 public static class DmHandler {
 
