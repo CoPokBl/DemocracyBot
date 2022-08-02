@@ -74,27 +74,26 @@ public static class CommandManager {
         return (T) self.Data.Options.Single(option => option.Name == name).Value;
     }
     
-    private static Embed GetEmbed(string title, string body, ResponseType type) {
+    public static EmbedBuilder GetEmbed(string title, string body, ResponseType type) {
         Color color = type switch {
             ResponseType.Success => Color.Green,
             ResponseType.Error => Color.Red,
             ResponseType.Info => Color.Blue,
             _ => Color.Blue
         };
-        
+
         return new EmbedBuilder()
             .WithTitle(title)
             .WithDescription(body)
-            .WithColor(color)
-            .Build();
+            .WithColor(color);
     }
 
     public static async Task RespondWithEmbedAsync(this SocketSlashCommand self, string title, string body, ResponseType type = ResponseType.Info) {
-        await self.RespondAsync(embed: GetEmbed(title, body, type));
+        await self.RespondAsync(embed: GetEmbed(title, body, type).Build());
     }
     
     public static async Task ModifyWithEmbedAsync(this SocketSlashCommand self, string title, string body, ResponseType type = ResponseType.Info) {
-        await self.ModifyOriginalResponseAsync(msg => msg.Embed = GetEmbed(title, body, type));
+        await self.ModifyOriginalResponseAsync(msg => msg.Embed = GetEmbed(title, body, type).Build());
     }
 
     public static async Task ModifyBodyTextAsync(this SocketSlashCommand self, string body) {
