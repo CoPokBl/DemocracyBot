@@ -17,7 +17,7 @@ public static class Commands {
         
         new ("vote-status", "Current votes for the next president!",
             Array.Empty<SlashCommandArgument>(),
-            new VoteCommand(),
+            new VoteStatusCommand(),
             null,
             false
         ),
