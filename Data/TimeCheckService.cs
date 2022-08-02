@@ -1,6 +1,7 @@
 using DemocracyBot.Commands;
 using DemocracyBot.Data.Schemas;
 using Discord.WebSocket;
+using GeneralPurposeLib;
 
 namespace DemocracyBot.Data; 
 
@@ -9,8 +10,8 @@ public class TimeCheckService {
     public static void StartThread(DiscordSocketClient client) {
         new Thread(() => {
             while (true) {
-                Thread.Sleep(60000);
                 Update(client);
+                Thread.Sleep(60000);
             }
         }).Start();
     }
@@ -78,7 +79,17 @@ public class TimeCheckService {
     }
 
     private static SocketTextChannel GetAnnouncementsChannel(DiscordSocketClient client) {
-        return (SocketTextChannel)client.GetGuild(ulong.Parse(Program.Config!["server_id"])).GetChannel(ulong.Parse(Program.Config!["announcement_channel_id"]));
+        if (client == null) throw new Exception("client is null");
+        Logger.Debug(Program.Config!["server_id"]);
+        SocketGuild? guild = client.GetGuild(ulong.Parse(Program.Config["server_id"]));
+        if (guild == null) {
+            Logger.Debug("guild is null");
+        }
+        SocketGuildChannel? server = guild.GetChannel(ulong.Parse(Program.Config["announcements_channel_id"]));
+        if (server == null) {
+            Logger.Debug("server is null");
+        }
+        return (SocketTextChannel) server;
     }
     
 }

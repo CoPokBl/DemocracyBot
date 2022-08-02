@@ -29,7 +29,6 @@ public class FileStorageService : IStorageService {
     }
 
     public Term? GetCurrentTerm() {
-        if (_currentTerm == null) throw new Exception("No one is the president");
         return _currentTerm;
     }
 
@@ -38,7 +37,6 @@ public class FileStorageService : IStorageService {
     }
 
     public Poll? GetCurrentPoll() {
-        if (_currentPoll == null) throw new Exception("No poll is currently running");
         return _currentPoll;
     }
 
