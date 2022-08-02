@@ -5,7 +5,7 @@ namespace DemocracyBot.Commands.ExecutionFunctions;
 
 public class VoteStatusCommand : ICommandExecutionHandler {
     public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
-        Poll poll = Program.StorageService.GetCurrentPoll();
+        Poll? poll = Program.StorageService.GetCurrentPoll();
 
         if (poll == null) {
             await cmd.RespondWithEmbedAsync("Error", "There is no current poll running", ResponseType.Error);
