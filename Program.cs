@@ -55,6 +55,15 @@ internal static class Program {
                 Logger.WaitFlush();
                 return 1;
         }
+
+        try {
+            StorageService.Init();
+        }
+        catch (Exception e) {
+            Logger.Error("Failed to initialize storage service: " + e);
+            Logger.WaitFlush();
+            return 1;
+        }
         
         if (args.Length != 0) {
 

@@ -1,39 +1,60 @@
 using DemocracyBot.Data.Schemas;
+using Newtonsoft.Json;
 
 namespace DemocracyBot.Data.Storage; 
 
 public class FileStorageService : IStorageService {
     
+    private Poll? _currentPoll;
+    private Term? _currentTerm;
+    
     public void Init() {
-        throw new NotImplementedException();
+        if (!File.Exists("data.json")) {
+            return;
+        }
+        string json = File.ReadAllText("data.json");
+        (Poll?, Term?) data = JsonConvert.DeserializeObject<(Poll?, Term?)>(json);
+        _currentPoll = data.Item1;
+        _currentTerm = data.Item2;
     }
 
     public void Deinit() {
-        throw new NotImplementedException();
+        string json = JsonConvert.SerializeObject((_currentPoll, _currentTerm));
+        File.WriteAllText("data.json", json);
     }
 
-    public void RegisterVote(long user, long vote) {
-        throw new NotImplementedException();
+    public void RegisterVote(ulong user, ulong vote) {
+        if (_currentPoll == null) throw new Exception("No poll is currently running");
+        _currentPoll.Votes.Add(user, vote);
     }
 
-    public Term GetCurrentTerm() {
-        throw new NotImplementedException();
+    public Term? GetCurrentTerm() {
+        if (_currentTerm == null) throw new Exception("No one is the president");
+        return _currentTerm;
     }
 
     public void SetCurrentTerm(Term term) {
-        throw new NotImplementedException();
+        _currentTerm = term;
     }
 
-    public Poll GetCurrentPoll() {
-        throw new NotImplementedException();
+    public Poll? GetCurrentPoll() {
+        if (_currentPoll == null) throw new Exception("No poll is currently running");
+        return _currentPoll;
     }
 
     public void StartNewPoll() {
-        throw new NotImplementedException();
+        _currentPoll = new Poll {
+            Votes = new Dictionary<ulong, ulong>(),
+            PollStart = DateTime.UtcNow.ToBinary(),
+            PollEnd = DateTime.UtcNow.AddSeconds(20).ToBinary()
+        };
     }
 
-    public void EndPoll(out long winner, out int votes) {
-        throw new NotImplementedException();
+    public void EndPoll(out ulong winner, out int votes) {
+        if (_currentPoll == null) throw new Exception("No poll is currently running");
+        winner = _currentPoll.GetWinner();
+        votes = _currentPoll.GetVotesCount()[winner];
+        _currentPoll = null;
     }
     
 }

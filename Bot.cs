@@ -1,4 +1,5 @@
 using DemocracyBot.Commands;
+using DemocracyBot.Data;
 using DemocracyBot.EventHandlers;
 using Discord;
 using Discord.WebSocket;
@@ -22,6 +23,8 @@ public class Bot {
         _client.Ready += ClientReady;
         _client.SlashCommandExecuted += SlashCommandHandler;
         _client.MessageReceived += MessageHandler.OnMessage;
+        
+        TimeCheckService.StartThread(_client);
 
         await _client.LoginAsync(TokenType.Bot, Program.Config!["token"]);
         await _client.StartAsync();
