@@ -14,9 +14,7 @@ internal static class Program {
 
     private static readonly Dictionary<string, string> DefaultConfig = new() {
         { "token", "discord bot token" },
-        { "testing_server_id", "911109182842602044" },
-        { "youtube-api-key", "nice little api key" },
-        { "urlscan-api-key", "cute little api key" }
+        { "testing_server_id", "911109182842602044" }
     };
     
 
@@ -30,7 +28,7 @@ internal static class Program {
             Console.WriteLine("Failed to initialize logger: " + e);
             return 1;
         }
-        Logger.Info("SerbleBot starting...");
+        Logger.Info("DemocracyBot starting...");
 
         // Config
         try {
