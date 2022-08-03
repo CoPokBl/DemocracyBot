@@ -44,7 +44,7 @@ public class FileStorageService : IStorageService {
         _currentPoll = new Poll {
             Votes = new Dictionary<ulong, ulong>(),
             PollStart = DateTime.UtcNow.ToBinary(),
-            PollEnd = DateTime.UtcNow.AddSeconds(60).ToBinary()
+            PollEnd = DateTime.UtcNow.AddHours(Convert.ToDouble(Program.Config!["poll_time"])).ToBinary()
         };
     }
 
