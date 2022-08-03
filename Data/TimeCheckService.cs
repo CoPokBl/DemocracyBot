@@ -80,7 +80,7 @@ public class TimeCheckService {
 
         // Check to see if the term is over
         Term? term = Program.StorageService.GetCurrentTerm();
-        if (term != null && DateTime.UtcNow > DateTime.FromBinary(term.TermEnd)) TermEnd(client);
+        if (term != null && poll == null && DateTime.UtcNow > DateTime.FromBinary(term.TermEnd)) TermEnd(client);
         
         // If there has never been an election and there isn't one currently then start one
         if (poll == null && term == null) TermEnd(client);
