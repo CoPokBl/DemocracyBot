@@ -33,10 +33,12 @@ public class TimeCheckService {
                 try {
                     Program.StorageService.EndPoll(out winner, out votes);
                 }
-                catch (Exception) {
+                catch (Exception e) {
+                    Logger.Debug(e);
                     // Ignore errors and have the winner be the bot
                     // The only error that should occur is if no one voted
                 }
+                Program.StorageService.NullifyPoll();
 
                 // Add relative timestamp because it updates automatically on the client
                 TimestampTag timestamp = TimestampTag.FromDateTime(
@@ -96,7 +98,7 @@ public class TimeCheckService {
                 
         await GetAnnouncementsChannel(client).SendMessageAsync(
             embed: CommandManager.GetEmbed(
-                $"The Election Has Began! (Ends in {timestamp})", 
+                $"The Election Has Began! (Ends {timestamp})", 
                 "Do /vote to vote for the next president!", 
                 ResponseType.Success
             ).Build()

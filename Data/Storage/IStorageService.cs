@@ -14,4 +14,5 @@ public interface IStorageService {
     Poll? GetCurrentPoll();
     void StartNewPoll();
     void EndPoll(out ulong winner, out int votes);
+    void NullifyPoll();
 }

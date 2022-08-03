@@ -54,5 +54,8 @@ public class FileStorageService : IStorageService {
         votes = _currentPoll.GetVotesCount()[winner];
         _currentPoll = null;
     }
-    
+
+    public void NullifyPoll() {
+        _currentPoll = null;
+    }
 }
