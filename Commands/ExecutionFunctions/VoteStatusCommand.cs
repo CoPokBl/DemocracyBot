@@ -14,12 +14,8 @@ public class VoteStatusCommand : ICommandExecutionHandler {
         
         Dictionary<ulong, int> votesCount = poll.GetVotesCount();
         
-        string message = "";
+        string message = votesCount.Aggregate("", (current, kv) => current + $"{client.GetUser(kv.Key).Mention}: {kv.Value} votes\n");
 
-        foreach (KeyValuePair<ulong, int> kv in votesCount) {
-            message += $"{kv.Key}: {kv.Value}\n";
-        }
-
-        await cmd.RespondWithEmbedAsync("Current Vote Status", message);
+        await cmd.RespondWithEmbedAsync("Current Vote Status", message == "" ? "No Votes Have Been Cast" : message);
     }
 }

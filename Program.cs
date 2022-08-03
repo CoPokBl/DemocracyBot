@@ -12,14 +12,16 @@ internal static class Program {
     public const string Version = "0.0.1";
     public static Dictionary<string, string>? Config;
     public static Random Random { get; } = new ();
-    public static IStorageService StorageService { get; private set; }
+    public static IStorageService StorageService { get; private set; } = null!;
 
     private static readonly Dictionary<string, string> DefaultConfig = new() {
         { "token", "discord bot token" },
         { "testing_server_id", "911109182842602044" },
         { "storage_service", "file" },
         { "server_id", "" },
-        { "announcements_channel_id", "" }
+        { "announcements_channel_id", "" },
+        { "president_role_id", "" },
+        { "save_data", "false" }
     };
     
 
@@ -66,6 +68,25 @@ internal static class Program {
             Logger.WaitFlush();
             return 1;
         }
+        
+        // This event gets fired when the user tried to stop the bot with Ctrl+C or similar.
+        Console.CancelKeyPress += (s, e) => {
+            Logger.Info("Shutting down...");
+            if (Config["save_data"] == "true") {
+                try {
+                    Logger.Info("Saving data...");
+                    StorageService.Deinit();
+                }
+                catch (Exception exception) {
+                    Logger.Error("Failure during storage service deinit: " + exception);
+                }
+            }
+            else {
+                Logger.Info("Data will not be saved, to change this modify 'save_data' in the config file.");
+            }
+            Logger.WaitFlush();
+            Environment.Exit(0);
+        };
         
         if (args.Length != 0) {
 
