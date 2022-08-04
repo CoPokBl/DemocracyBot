@@ -17,4 +17,9 @@ public class Term {
     /// </summary>
     public long TermEnd { get; set; }
     
+    /// <summary>
+    /// List of people who have voted to overthrow the president
+    /// </summary>
+    public List<ulong> RiotVotes { get; set; }
+    
 }

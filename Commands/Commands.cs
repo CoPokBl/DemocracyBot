@@ -21,6 +21,12 @@ public static class Commands {
             null,
             false
         ),
+        
+        new ("riot", "Vote to overthrow the president", 
+            Array.Empty<SlashCommandArgument>(),
+            new RiotCommand(),
+            null,
+            false),
     };
 
 }

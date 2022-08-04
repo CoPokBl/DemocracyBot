@@ -20,6 +20,7 @@ public class TimeCheckService {
     }
 
     private static async void Update(DiscordSocketClient client) {
+        SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
         
         // Check to see if the poll is over
         Poll? poll = Program.StorageService.GetCurrentPoll();
@@ -53,8 +54,7 @@ public class TimeCheckService {
                         ResponseType.Success
                     ).Build()
                 );
-
-                SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
+                
                 SocketGuildUser winnerMember = guild.GetUser(winner);
                 
                 // Take role away from current president
@@ -84,6 +84,25 @@ public class TimeCheckService {
         Term? term = Program.StorageService.GetCurrentTerm();
         if (term != null && poll == null && DateTime.UtcNow > DateTime.FromBinary(term.TermEnd)) TermEnd(client);
         
+        // Check to see if a riot has been triggered
+        if (term != null) {
+            double percentOfPeopleWantingToOverthrow = term.RiotVotes.Count / guild.MemberCount - 2;
+            if (percentOfPeopleWantingToOverthrow > 0.5) {
+                // Riot has been triggered
+                // Get the president
+                SocketGuildUser president = guild.GetUser(term.PresidentId);
+                await president.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"]));
+                await GetAnnouncementsChannel(client)
+                    .SendMessageAsync(embed: 
+                        CommandManager.GetEmbed(
+                            "Riot!", 
+                            "The president has been overthrown!", 
+                            ResponseType.Success).Build());
+                term.TermEnd = DateTime.UtcNow.ToBinary();
+                Program.StorageService.SetCurrentTerm(term);
+            }
+        }
+
         // If there has never been an election and there isn't one currently then start one
         if (poll == null && term == null) TermEnd(client);
     }
