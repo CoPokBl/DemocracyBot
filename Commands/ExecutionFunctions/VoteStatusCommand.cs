@@ -32,7 +32,9 @@ public class VoteStatusCommand : ICommandExecutionHandler {
             return current + $"{user.Mention}: {kv.Value} votes\n";
         });
 
-        await cmd.RespondWithEmbedAsync("Current Vote Status", message == "" ? "No Votes Have Been Cast" : message);
+        await cmd.RespondWithEmbedAsync(
+            $"Current Vote Status (Vote ends {TimestampTag.FromDateTime(DateTime.FromBinary(poll.PollEnd).ToLocalTime(), TimestampTagStyles.Relative)})", 
+            message == "" ? "No Votes Have Been Cast" : message);
     }
     
     private static async Task<IUser> GetUserSync(ulong userId, DiscordSocketClient client) {
