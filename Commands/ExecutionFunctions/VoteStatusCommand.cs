@@ -1,5 +1,6 @@
 using DemocracyBot.Data.Schemas;
 using Discord.WebSocket;
+using GeneralPurposeLib;
 
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
@@ -14,7 +15,14 @@ public class VoteStatusCommand : ICommandExecutionHandler {
         
         Dictionary<ulong, int> votesCount = poll.GetVotesCount();
         
-        string message = votesCount.Aggregate("", (current, kv) => current + $"{client.GetUser(kv.Key).Mention}: {kv.Value} votes\n");
+        string message = votesCount.Aggregate("", (current, kv) => {
+            SocketUser user = client.GetUser(kv.Key);
+            if (user == null) {
+                Logger.Error("User with id " + kv.Key + " not found");
+                return current;
+            }
+            return current + $"{client.GetUser(kv.Key).Mention}: {kv.Value} votes\n";
+        });
 
         await cmd.RespondWithEmbedAsync("Current Vote Status", message == "" ? "No Votes Have Been Cast" : message);
     }

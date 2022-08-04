@@ -1,4 +1,5 @@
 using DemocracyBot.Data.Schemas;
+using GeneralPurposeLib;
 using Newtonsoft.Json;
 
 namespace DemocracyBot.Data.Storage; 
@@ -16,6 +17,11 @@ public class FileStorageService : IStorageService {
         (Poll?, Term?) data = JsonConvert.DeserializeObject<(Poll?, Term?)>(json);
         _currentPoll = data.Item1;
         _currentTerm = data.Item2;
+
+        if (_currentPoll == null) return;
+        foreach (KeyValuePair<ulong, ulong> vote in _currentPoll.Votes) {
+            Logger.Debug("Vote: " + vote.Key + " " + vote.Value);
+        }
     }
 
     public void Deinit() {
