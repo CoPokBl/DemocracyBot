@@ -1,3 +1,5 @@
+using GeneralPurposeLib;
+
 namespace DemocracyBot.Data.Schemas; 
 
 public class Poll {
@@ -43,7 +45,9 @@ public class Poll {
         foreach (ulong vote in Votes.Values) {
             if (!votes.ContainsKey(vote)) {
                 votes.Add(vote, 0);
+                Logger.Debug("New user in votes: " + vote);
             }
+            Logger.Debug("Adding new vote for user " + vote);
             votes[vote]++;
         }
         return votes;
