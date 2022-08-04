@@ -14,6 +14,9 @@ public class VoteStatusCommand : ICommandExecutionHandler {
         }
         
         Dictionary<ulong, int> votesCount = poll.GetVotesCount();
+        foreach (KeyValuePair<ulong, int> voteCount in votesCount) {
+            Logger.Debug("Votecount: " + voteCount.Key + " " + voteCount.Value);
+        }
         
         string message = votesCount.Aggregate("", (current, kv) => {
             SocketUser user = client.GetUser(kv.Key);
