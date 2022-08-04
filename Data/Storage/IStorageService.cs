@@ -5,6 +5,7 @@ namespace DemocracyBot.Data.Storage;
 public interface IStorageService {
     void Init();
     void Deinit();
+    void Save();
 
     void RegisterVote(ulong user, ulong vote);
     

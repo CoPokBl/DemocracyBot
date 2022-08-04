@@ -8,6 +8,7 @@ namespace DemocracyBot.Data;
 
 public class TimeCheckService {
     private static TimeSpan termLength;
+    private static DateTime nextSave = DateTime.Now.AddMinutes(1);
 
     public static void StartThread(DiscordSocketClient client) {
         termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
@@ -22,6 +23,12 @@ public class TimeCheckService {
     }
 
     private static async void Update(DiscordSocketClient client) {
+        
+        // Check for save event
+        if (nextSave < DateTime.Now) {
+            Program.StorageService.Save();
+            nextSave = DateTime.Now.AddMinutes(1);
+        }
         
         // Check to see if the poll is over
         Poll? poll = Program.StorageService.GetCurrentPoll();
