@@ -7,9 +7,12 @@ using GeneralPurposeLib;
 namespace DemocracyBot.Data; 
 
 public class TimeCheckService {
-    private static readonly TimeSpan TermLength = new(0, 0, 60);
+    private static TimeSpan termLength;
+    private static DateTime nextSave = DateTime.Now.AddMinutes(1);
 
     public static void StartThread(DiscordSocketClient client) {
+        termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
+
         // Start the thread that checks for events
         new Thread(() => {
             while (true) {
@@ -21,6 +24,12 @@ public class TimeCheckService {
 
     private static async void Update(DiscordSocketClient client) {
         SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
+        
+        // Check for save event
+        if (nextSave < DateTime.Now) {
+            Program.StorageService.Save();
+            nextSave = DateTime.Now.AddMinutes(1);
+        }
         
         // Check to see if the poll is over
         Poll? poll = Program.StorageService.GetCurrentPoll();
@@ -43,7 +52,7 @@ public class TimeCheckService {
 
                 // Add relative timestamp because it updates automatically on the client
                 TimestampTag timestamp = TimestampTag.FromDateTime(
-                    DateTime.Now.Add(TermLength), 
+                    DateTime.Now.Add(termLength), 
                     TimestampTagStyles.Relative);
                 
                 SocketUser winnerUser = client.GetUser(winner);
@@ -72,7 +81,7 @@ public class TimeCheckService {
                 Program.StorageService.SetCurrentTerm(new Term {
                     PresidentId = winner,
                     TermStart = DateTime.UtcNow.ToBinary(),
-                    TermEnd = DateTime.UtcNow.Add(TermLength).ToBinary()
+                    TermEnd = DateTime.UtcNow.Add(termLength).ToBinary()
                 });
                 
                 // Dont check the term

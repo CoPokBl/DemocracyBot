@@ -21,7 +21,9 @@ internal static class Program {
         { "server_id", "" },
         { "announcements_channel_id", "" },
         { "president_role_id", "" },
-        { "save_data", "false" }
+        { "save_data", "false" },
+        { "poll_time", "48" },
+        { "term_length", "336" }
     };
     
 
