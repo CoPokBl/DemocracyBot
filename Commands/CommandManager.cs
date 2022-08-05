@@ -103,6 +103,10 @@ public static class CommandManager {
     public static async Task RespondWithUsageAsync(this SocketSlashCommand self, string usage) {
         await self.RespondWithEmbedAsync("Usage", usage, ResponseType.Error);
     }
+
+    public static bool IsNull(this object? obj) {
+        return obj == null;
+    }
 }
 
 public enum ResponseType {

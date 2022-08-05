@@ -27,6 +27,12 @@ public static class Commands {
             new RiotCommand(),
             null,
             false),
+        
+        new ("term-status", "Gets information about the current term",
+            Array.Empty<SlashCommandArgument>(),
+            new TermStatusCommand(),
+            null,
+            false),
     };
 
 }
