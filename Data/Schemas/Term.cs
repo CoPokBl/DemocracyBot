@@ -20,6 +20,5 @@ public class Term {
     /// <summary>
     /// List of people who have voted to overthrow the president
     /// </summary>
-    public List<ulong> RiotVotes { get; set; }
-    
+    public List<ulong> RiotVotes { get; set; } = null!;
 }

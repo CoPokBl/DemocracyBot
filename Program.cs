@@ -72,7 +72,7 @@ internal static class Program {
         }
         
         // This event gets fired when the user tried to stop the bot with Ctrl+C or similar.
-        Console.CancelKeyPress += (s, e) => {
+        Console.CancelKeyPress += (_, _) => {
             Logger.Info("Shutting down...");
             if (Config["save_data"] == "true") {
                 try {
