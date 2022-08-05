@@ -6,12 +6,12 @@ using GeneralPurposeLib;
 
 namespace DemocracyBot.Data; 
 
-public class TimeCheckService {
-    private static TimeSpan termLength;
-    private static DateTime nextSave = DateTime.Now.AddMinutes(1);
+public static class TimeCheckService {
+    private static TimeSpan _termLength;
+    private static DateTime _nextSave = DateTime.Now.AddMinutes(1);
 
     public static void StartThread(DiscordSocketClient client) {
-        termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
+        _termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
 
         // Start the thread that checks for events
         new Thread(() => {
@@ -26,9 +26,9 @@ public class TimeCheckService {
         SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
         
         // Check for save event
-        if (nextSave < DateTime.Now) {
+        if (_nextSave < DateTime.Now) {
             Program.StorageService.Save();
-            nextSave = DateTime.Now.AddMinutes(1);
+            _nextSave = DateTime.Now.AddMinutes(1);
         }
         
         // Check to see if the poll is over
@@ -52,7 +52,7 @@ public class TimeCheckService {
 
                 // Add relative timestamp because it updates automatically on the client
                 TimestampTag timestamp = TimestampTag.FromDateTime(
-                    DateTime.Now.Add(termLength), 
+                    DateTime.Now.Add(_termLength), 
                     TimestampTagStyles.Relative);
                 
                 SocketUser winnerUser = client.GetUser(winner);
@@ -81,7 +81,7 @@ public class TimeCheckService {
                 Program.StorageService.SetCurrentTerm(new Term {
                     PresidentId = winner,
                     TermStart = DateTime.UtcNow.ToBinary(),
-                    TermEnd = DateTime.UtcNow.Add(termLength).ToBinary(),
+                    TermEnd = DateTime.UtcNow.Add(_termLength).ToBinary(),
                     RiotVotes = new List<ulong>()
                 });
                 
