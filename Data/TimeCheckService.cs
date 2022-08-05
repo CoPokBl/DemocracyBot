@@ -16,7 +16,13 @@ public static class TimeCheckService {
         // Start the thread that checks for events
         new Thread(() => {
             while (true) {
-                Update(client);
+                try {
+                    Update(client);
+                }
+                catch (Exception e) {
+                    Logger.Error("Error in TimeCheckService.Update: " + e.Message);
+                    Logger.Error(e);
+                }
                 Thread.Sleep(new TimeSpan(0, 0, 5)); // Run every 5 seconds
             }
         }).Start();

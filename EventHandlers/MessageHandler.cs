@@ -3,7 +3,7 @@ using Discord.WebSocket;
 
 namespace DemocracyBot.EventHandlers; 
 
-public class MessageHandler {
+public static class MessageHandler {
 
     public static Task OnMessage(SocketMessage msg) {
 
