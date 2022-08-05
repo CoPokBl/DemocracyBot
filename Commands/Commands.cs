@@ -33,6 +33,12 @@ public static class Commands {
             new TermStatusCommand(),
             null,
             false),
+        
+        new ("president-resign", "Resign as president and trigger election",
+            Array.Empty<SlashCommandArgument>(),
+            new ResignCommand(),
+            null,
+            false),
     };
 
 }
