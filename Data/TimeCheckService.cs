@@ -81,7 +81,8 @@ public class TimeCheckService {
                 Program.StorageService.SetCurrentTerm(new Term {
                     PresidentId = winner,
                     TermStart = DateTime.UtcNow.ToBinary(),
-                    TermEnd = DateTime.UtcNow.Add(termLength).ToBinary()
+                    TermEnd = DateTime.UtcNow.Add(termLength).ToBinary(),
+                    RiotVotes = new List<ulong>()
                 });
                 
                 // Dont check the term
