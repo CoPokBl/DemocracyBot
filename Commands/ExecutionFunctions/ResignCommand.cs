@@ -5,7 +5,7 @@ using GeneralPurposeLib;
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class ResignCommand : ICommandExecutionHandler {
-    public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
+    public async Task Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
         Term? term = Program.StorageService.GetCurrentTerm();
         if (term == null) {
             NotPresident(cmd);

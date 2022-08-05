@@ -4,7 +4,7 @@ using Discord.WebSocket;
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class RiotCommand : ICommandExecutionHandler {
-    public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
+    public async Task Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
         Term? term = Program.StorageService.GetCurrentTerm();
         if (term == null) {
             await cmd.RespondWithEmbedAsync("Error", "No term is currently in progress.", ResponseType.Error);

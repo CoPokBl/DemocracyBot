@@ -6,10 +6,10 @@ namespace DemocracyBot.Commands;
 
 public static class CommandManager {
 
-    public static void Invoke(SocketSlashCommand cmdArgs, DiscordSocketClient client) {
+    public static async void Invoke(SocketSlashCommand cmdArgs, DiscordSocketClient client) {
         Logger.Debug("Attempting to invoke command: " + cmdArgs.CommandName);
         try {
-            Commands.SlashCommands.Single(slashCmd => slashCmd.Name == cmdArgs.CommandName).OnExecute.Execute(cmdArgs, client);
+            await Commands.SlashCommands.Single(slashCmd => slashCmd.Name == cmdArgs.CommandName).OnExecute.Execute(cmdArgs, client);
         }
         catch (Exception e) {
             Logger.Error(e);
@@ -21,7 +21,7 @@ public static class CommandManager {
             string argsString = cmdArgs.Data.Options.Aggregate("\n", (current, option) => current + $"{option.Name} ({option.Type.ToString()}) = {option.Value}\n");
             Logger.Debug($"Arguments: {argsString}");
             
-            cmdArgs.RespondAsync("Sorry but I couldn't execute that command ¯\\_(ツ)_/¯");
+            await cmdArgs.RespondAsync("Sorry but I couldn't execute that command ¯\\_(ツ)_/¯");
         }
     }
     

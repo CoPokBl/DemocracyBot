@@ -5,7 +5,7 @@ using Discord.WebSocket;
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class TermStatusCommand : ICommandExecutionHandler {
-    public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
+    public async Task Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
         Term? term = Program.StorageService.GetCurrentTerm();
         if (term.IsNull()) {
             await cmd.RespondWithEmbedAsync("Error", "No term is currently in progress.", ResponseType.Error);

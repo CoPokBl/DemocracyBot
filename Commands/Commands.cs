@@ -39,6 +39,14 @@ public static class Commands {
             new ResignCommand(),
             null,
             false),
+        
+        new ("dev-tools", "This is only for the developer",
+            new [] {
+                new SlashCommandArgument("command", "Dev command", false, ApplicationCommandOptionType.String)
+            },
+            new DevToolsCommand(),
+            null,
+            false),
     };
 
 }

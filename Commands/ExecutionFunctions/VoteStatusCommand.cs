@@ -6,7 +6,7 @@ using GeneralPurposeLib;
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
 public class VoteStatusCommand : ICommandExecutionHandler {
-    public async void Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
+    public async Task Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
         Poll? poll = Program.StorageService.GetCurrentPoll();
 
         if (poll == null) {
