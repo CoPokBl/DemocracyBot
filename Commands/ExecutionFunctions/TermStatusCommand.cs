@@ -13,7 +13,7 @@ public class TermStatusCommand : ICommandExecutionHandler {
         }
         await cmd.RespondWithEmbedAsync(
             "Term Status", 
-            $"President: {client.GetUser(term!.PresidentId).Mention}\n" +
+            $"President: {(await client.GetUserAsync(term!.PresidentId)).Mention}\n" +
             $"Term Started {TimestampTag.FromDateTime(DateTime.FromBinary(term.TermStart), TimestampTagStyles.Relative)}\n" +
             $"Term Ends {TimestampTag.FromDateTime(DateTime.FromBinary(term.TermEnd), TimestampTagStyles.Relative)}\n" +
             $"Rioting: {term.RiotVotes.Count}", 
