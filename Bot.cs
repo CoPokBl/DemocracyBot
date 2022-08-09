@@ -16,8 +16,11 @@ public class Bot {
     }
 
     public async Task Run() {
-        _client = new DiscordSocketClient();
-        
+        DiscordSocketConfig config = new() {
+            GatewayIntents = GatewayIntents.All
+        };
+        _client = new DiscordSocketClient(config);
+
         // Events
         _client.Log += Log;
         _client.Ready += ClientReady;
