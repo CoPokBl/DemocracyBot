@@ -114,8 +114,8 @@ public static class TimeCheckService {
                             "Riot!", 
                             "The president has been overthrown!", 
                             ResponseType.Success).Build());
-                term.TermEnd = DateTime.UtcNow.ToBinary();
-                Program.StorageService.SetCurrentTerm(term);
+                term = null;
+                Program.StorageService.SetCurrentTerm(term!);
             }
         }
 
