@@ -9,6 +9,8 @@ namespace DemocracyBot.Data;
 public static class TimeCheckService {
     private static TimeSpan _termLength;
     private static DateTime _nextSave = DateTime.Now.AddMinutes(1);
+    private static int _guildMembersMinusBots;
+    private static int _countCount = 99;
 
     public static void StartThread(DiscordSocketClient client) {
         _termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
@@ -30,6 +32,13 @@ public static class TimeCheckService {
 
     private static async void Update(DiscordSocketClient client) {
         SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
+
+        _countCount++;
+        if (_countCount >= 100) {
+            _countCount = 0;
+            _guildMembersMinusBots = guild.Users.Count(u => !u.IsBot);
+            Logger.Debug("Guild members minus bots update: " + _guildMembersMinusBots);
+        }
         
         // Check for save event
         if (_nextSave < DateTime.Now) {
@@ -102,7 +111,7 @@ public static class TimeCheckService {
         
         // Check to see if a riot has been triggered
         if (term != null) {
-            double percentOfPeopleWantingToOverthrow = term.RiotVotes.Count / guild.MemberCount - 2;
+            double percentOfPeopleWantingToOverthrow = term.RiotVotes.Count / ((double)_guildMembersMinusBots - 1);
             if (percentOfPeopleWantingToOverthrow > 0.5) {
                 // Riot has been triggered
                 // Get the president
