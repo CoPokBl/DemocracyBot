@@ -15,6 +15,10 @@ public class ResignCommand : ICommandExecutionHandler {
             NotPresident(cmd);
             return;
         }
+        if (DateTime.FromBinary(term.TermEnd) < DateTime.UtcNow) {
+            NotPresident(cmd);
+            return;
+        }
 
         await GetAnnouncementsChannel(client)
             .SendMessageAsync(embed: 
