@@ -29,7 +29,7 @@ public class FileStorageService : IStorageService {
     }
 
     public void Save() {
-        Logger.Debug("Saving...");
+        //Logger.Debug("Saving...");
         string json = JsonConvert.SerializeObject((_currentPoll, _currentTerm));
         File.WriteAllText("data.json", json);
     }

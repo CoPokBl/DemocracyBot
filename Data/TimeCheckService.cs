@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DemocracyBot.Commands;
 using DemocracyBot.Data.Schemas;
 using Discord;
@@ -11,12 +12,44 @@ public static class TimeCheckService {
     private static DateTime _nextSave = DateTime.Now.AddMinutes(1);
     private static int _guildMembersMinusBots;
     private static int _countCount = 99;
+    private static DiscordSocketClient? _client;
+    
+    private static int _activeThreadCount;
+    private static int _activeUpdatesCount;
+
+    private static int ActiveThreads {
+        get => _activeThreadCount;
+        set {
+            if (value is > 1 or < 0) {
+                Logger.Error("App tried to set active threads to " + value);
+                string stackTrace = new StackTrace().ToString();
+                GetAnnouncementsChannel(_client!).SendMessageAsync("App tried to set active threads to " + value + "\n" + stackTrace);
+                throw new Exception("App tried to set active threads to " + value);
+            }
+            _activeThreadCount = value;
+        }
+    }
+    
+    private static int ActiveUpdates {
+        get => _activeUpdatesCount;
+        set {
+            if (value is > 1 or < 0) {
+                Logger.Error("App tried to set active updates to " + value);
+                string stackTrace = new StackTrace().ToString();
+                GetAnnouncementsChannel(_client!).SendMessageAsync("App tried to set active threads to " + value + "\n" + stackTrace);
+                throw new Exception("App tried to set active updates to " + value);
+            }
+            _activeUpdatesCount = value;
+        }
+    }
 
     public static void StartThread(DiscordSocketClient client) {
+        _client = client;
         _termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
 
         // Start the thread that checks for events
         new Thread(() => {
+            ActiveThreads++;
             while (true) {
                 try {
                     Update(client);
@@ -24,6 +57,7 @@ public static class TimeCheckService {
                 catch (Exception e) {
                     Logger.Error("Error in TimeCheckService.Update: " + e.Message);
                     Logger.Error(e);
+                    GetAnnouncementsChannel(client).SendMessageAsync(e.ToString());
                 }
                 Thread.Sleep(new TimeSpan(0, 0, 5)); // Run every 5 seconds
             }
@@ -31,13 +65,14 @@ public static class TimeCheckService {
     }
 
     private static async void Update(DiscordSocketClient client) {
+        ActiveUpdates++;
         SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
 
         _countCount++;
         if (_countCount >= 100) {
             _countCount = 0;
             _guildMembersMinusBots = guild.Users.Count(u => !u.IsBot);
-            Logger.Debug("Guild members minus bots update: " + _guildMembersMinusBots);
+            //Logger.Debug("Guild members minus bots update: " + _guildMembersMinusBots);
         }
         
         // Check for save event
@@ -57,6 +92,7 @@ public static class TimeCheckService {
                 int votes = 0;
                 try {
                     Program.StorageService.EndPoll(out winner, out votes);
+                    Logger.Debug("Poll Was Ended Successfully, winner: " + winner + " votes: " + votes);
                 }
                 catch (Exception e) {
                     Logger.Debug(e);
@@ -78,6 +114,7 @@ public static class TimeCheckService {
                         ResponseType.Success
                     ).Build()
                 );
+                Logger.Debug("Poll Ended Message Sent");
                 
                 SocketGuildUser winnerMember = guild.GetUser(winner);
                 
@@ -101,6 +138,7 @@ public static class TimeCheckService {
                 });
                 
                 // Dont check the term
+                ActiveUpdates--;
                 return;
             }
         }
@@ -114,6 +152,7 @@ public static class TimeCheckService {
             double percentOfPeopleWantingToOverthrow = term.RiotVotes.Count / ((double)_guildMembersMinusBots - 1);
             if (percentOfPeopleWantingToOverthrow > 0.5) {
                 // Riot has been triggered
+                Logger.Debug("Riot has been triggered");
                 // Get the president
                 SocketGuildUser president = guild.GetUser(term.PresidentId);
                 await president.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"]));
@@ -123,6 +162,7 @@ public static class TimeCheckService {
                             "Riot!", 
                             "The president has been overthrown!", 
                             ResponseType.Success).Build());
+                Logger.Debug("Riot Message Sent");
                 term = null;
                 Program.StorageService.SetCurrentTerm(term!);
             }
@@ -130,11 +170,13 @@ public static class TimeCheckService {
 
         // If there has never been an election and there isn't one currently then start one
         if (poll == null && term == null) TermEnd(client);
+        ActiveUpdates--;
     }
 
     private static async void TermEnd(DiscordSocketClient client) {
+        Logger.Debug("Term Ended");
         Program.StorageService.StartNewPoll();
-            
+        
         // Add relative timestamp because it updates automatically on the client
         TimestampTag timestamp = TimestampTag.FromDateTime(
             DateTime.FromBinary(Program.StorageService.GetCurrentPoll()!.PollEnd).ToLocalTime(), 
@@ -147,6 +189,7 @@ public static class TimeCheckService {
                 ResponseType.Success
             ).Build()
         );
+        Logger.Debug("Election Message Sent");
     }
 
     private static SocketTextChannel GetAnnouncementsChannel(DiscordSocketClient client) {
