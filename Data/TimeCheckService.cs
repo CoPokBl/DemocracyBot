@@ -110,10 +110,15 @@ public static class TimeCheckService {
 
                 if (winnerMember == null) {
                     // That user is no longer in the server
+                    Debug.Assert(client != null);
+                    SocketUser winnerUser = client.GetUser(winner);
+                    Debug.Assert(winnerUser != null);
+                    Debug.Assert(timestamp != null);
+                    Debug.Assert(winnerMember == null);
                     await GetAnnouncementsChannel(client).SendMessageAsync(
                         embed: CommandManager.GetEmbed(
                             "The Poll Has Ended!",
-                            $"The winner is: {client.GetUser(winner).Mention} with {votes} votes! " +
+                            $"The winner is: {winnerUser.Mention} with {votes} votes! " +
                             "However they are nowhere to be found, so I'll be stepping in as acting president. " +
                             $"(Next election: {timestamp})",
                             ResponseType.Success
