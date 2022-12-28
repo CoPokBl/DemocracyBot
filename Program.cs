@@ -149,9 +149,9 @@ internal static class Program {
         List<DateTime> errors = new();
         Exception? lastError = null;
         while (true) {
+            Bot bot = new();
             try {
                 Logger.Info("Starting bot...");
-                Bot bot = new ();
                 bot.Run().Wait();
                 Logger.Warn("Bot task exited unexpectedly");
                 break;
@@ -178,6 +178,7 @@ internal static class Program {
                 Logger.Info("Restating bot in 5 seconds...");
                 Thread.Sleep(5000);
             }
+            Bot.Reset();
         }
 
         Logger.WaitFlush();

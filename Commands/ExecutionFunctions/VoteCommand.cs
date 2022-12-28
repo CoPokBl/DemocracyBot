@@ -14,6 +14,13 @@ public class VoteCommand : ICommandExecutionHandler {
         }
         
         IUser voteUser = cmd.GetArgument<IUser>("president")!;
+        SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
+        SocketGuildUser voteMember = guild.GetUser(voteUser.Id);
+
+        if (voteMember == null) {
+            // User is not in the server
+            await cmd.RespondWithEmbedAsync("Error", "You can only vote for members of the server.", ResponseType.Error);
+        }
 
         if (poll.Votes.ContainsKey(cmd.User.Id)) {
             poll.Votes[cmd.User.Id] = voteUser.Id;

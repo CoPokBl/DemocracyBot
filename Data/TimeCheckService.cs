@@ -106,18 +106,32 @@ public static class TimeCheckService {
                     DateTime.Now.Add(_termLength), 
                     TimestampTagStyles.Relative);
                 
-                SocketUser winnerUser = client.GetUser(winner);
-                await GetAnnouncementsChannel(client).SendMessageAsync(
-                    embed: CommandManager.GetEmbed(
-                        "The Poll Has Ended!", 
-                        $"The Winner is: {winnerUser.Mention} with {votes} votes! (Next election: {timestamp})", 
-                        ResponseType.Success
-                    ).Build()
-                );
-                Logger.Debug("Poll Ended Message Sent");
-                
                 SocketGuildUser winnerMember = guild.GetUser(winner);
-                
+
+                if (winnerMember == null) {
+                    // That user is no longer in the server
+                    await GetAnnouncementsChannel(client).SendMessageAsync(
+                        embed: CommandManager.GetEmbed(
+                            "The Poll Has Ended!",
+                            $"The winner is: {client.GetUser(winner).Mention} with {votes} votes! " +
+                            "However they are nowhere to be found, so I'll be stepping in as acting president. " +
+                            $"(Next election: {timestamp})",
+                            ResponseType.Success
+                        ).Build()
+                    );
+                    winnerMember = guild.GetUser(client.CurrentUser.Id);
+                }
+                else {
+                    await GetAnnouncementsChannel(client).SendMessageAsync(
+                        embed: CommandManager.GetEmbed(
+                            "The Poll Has Ended!", 
+                            $"The Winner is: {winnerMember.Mention} with {votes} votes! (Next election: {timestamp})", 
+                            ResponseType.Success
+                        ).Build()
+                    );
+                }
+                Logger.Debug("Poll Ended Message Sent");
+
                 // Take role away from current president
                 // Make sure this is before giving the role because if the same person was elected again then it would give the role then take it
                 Term? cTerm = Program.StorageService.GetCurrentTerm();

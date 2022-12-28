@@ -10,6 +10,23 @@ namespace DemocracyBot;
 public class Bot {
     
     private static DiscordSocketClient? _client;
+    private static CancellationTokenSource _cts;
+    private static bool _hasBeenInitialized;
+
+    public Bot() {
+        if (_hasBeenInitialized) {
+            Logger.Error("Bot has already been initialized!"); ;
+            Logger.Error(Environment.StackTrace);
+        }
+        _hasBeenInitialized = true;
+        _cts = new CancellationTokenSource();
+    }
+
+    public static void Reset() {
+        _hasBeenInitialized = false;
+        _client = null;
+        _cts.Cancel();
+    }
 
     public static bool IsMe(SocketUser user) {
         return user.Id == _client!.CurrentUser.Id;
@@ -31,7 +48,7 @@ public class Bot {
         await _client.StartAsync();
         
         // Block this task until the program is closed.
-        await Task.Delay(-1);
+        await Task.Delay(-1, _cts.Token);
         Logger.Warn("Bot is shutting down");
     }
     
