@@ -156,7 +156,7 @@ public static class TimeCheckService {
                 
                 // Set new president
                 Program.StorageService.SetCurrentTerm(new Term {
-                    PresidentId = winner,
+                    PresidentId = winnerMember.Id,
                     TermStart = DateTime.UtcNow.ToBinary(),
                     TermEnd = DateTime.UtcNow.Add(_termLength).ToBinary(),
                     RiotVotes = new List<ulong>()
