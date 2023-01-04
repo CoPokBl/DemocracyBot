@@ -147,8 +147,8 @@ public static class TimeCheckService {
                 // Make sure this is before giving the role because if the same person was elected again then it would give the role then take it
                 Term? cTerm = Program.StorageService.GetCurrentTerm();
                 if (cTerm != null) {
-                    SocketGuildUser oldPresident = guild.GetUser(cTerm.PresidentId);
-                    oldPresident.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"])).Wait();
+                    SocketGuildUser? oldPresident = guild.GetUser(cTerm.PresidentId);
+                    oldPresident?.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"])).Wait();
                 }
 
                 // Give them the role
