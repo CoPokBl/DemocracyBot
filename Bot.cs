@@ -12,6 +12,7 @@ public class Bot {
     private static DiscordSocketClient? _client;
     private static CancellationTokenSource _cts;
     private static bool _hasBeenInitialized;
+    private static bool _hasReadied;
 
     public Bot() {
         if (_hasBeenInitialized) {
@@ -65,7 +66,10 @@ public class Bot {
     private async Task ClientReady() {
         Logger.Debug("Client ready");
         await _client!.SetGameAsync("Fuck communism");
-        TimeCheckService.StartThread(_client);
+        if (!_hasReadied) {  // Don't run these things twice
+            TimeCheckService.StartThread(_client);
+        }
+        _hasReadied = true;
     }
     
     private static Task Log(LogMessage msg) {
