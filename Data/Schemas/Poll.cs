@@ -1,23 +1,21 @@
-using GeneralPurposeLib;
-
 namespace DemocracyBot.Data.Schemas; 
 
 public class Poll {
     
     /// <summary>
-    /// (User who voted, who they voted for)
+    /// (User, votes for them)
     /// </summary>
-    public Dictionary<ulong, ulong> Votes { get; set; } = null!;
+    public Dictionary<ulong, int> Votes { get; set; } = null!;
 
     /// <summary>
     /// When the poll started
     /// </summary>
-    public long PollStart { get; set; }
+    public DateTime PollStart { get; set; }
     
     /// <summary>
     /// When the election will be called
     /// </summary>
-    public long PollEnd { get; set; }
+    public DateTime PollEnd { get; set; }
     
     /// <summary>
     /// Gets the current winner of the poll
@@ -41,16 +39,7 @@ public class Poll {
     /// </summary>
     /// <returns>A dictionary containing the data (userid, votes)</returns>
     public Dictionary<ulong, int> GetVotesCount() {
-        Dictionary<ulong, int> votes = new();
-        foreach (ulong vote in Votes.Values) {
-            if (!votes.ContainsKey(vote)) {
-                votes.Add(vote, 0);
-                Logger.Debug("New user in votes: " + vote);
-            }
-            Logger.Debug("Adding new vote for user " + vote);
-            votes[vote]++;
-        }
-        return votes;
+        return Votes;
     }
 
     /// <summary>

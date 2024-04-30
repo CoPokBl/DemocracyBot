@@ -1,12 +1,13 @@
 using Discord;
 using Discord.WebSocket;
+using SimpleDiscordNet.DMs;
 
 namespace DemocracyBot.EventHandlers; 
 
-public static class MessageHandler {
+public class MessageHandler {
 
-    public static Task OnMessage(SocketMessage msg) {
-
+    [DmListener]
+    public Task OnMessage(SocketMessage msg) {
         if (Bot.IsMe(msg.Author)) {
             return Task.CompletedTask;
         }

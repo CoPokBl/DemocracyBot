@@ -1,8 +1,4 @@
-﻿using DemocracyBot.Commands;
-using DemocracyBot.Data;
-using DemocracyBot.Data.Storage;
-using Discord;
-using Discord.WebSocket;
+﻿using DemocracyBot.Data.Storage;
 using GeneralPurposeLib;
 
 namespace DemocracyBot;
@@ -10,20 +6,22 @@ namespace DemocracyBot;
 internal static class Program {
     
     public const string Version = "0.0.1";
-    public static Dictionary<string, string>? Config;
     public static Random Random { get; } = new ();
     public static IStorageService StorageService { get; private set; } = null!;
 
-    private static readonly Dictionary<string, string> DefaultConfig = new() {
+    private static readonly Dictionary<string, Property> DefaultConfig = new() {
         { "token", "discord bot token" },
         { "testing_server_id", "911109182842602044" },
         { "storage_service", "file" },
         { "server_id", "" },
         { "announcements_channel_id", "" },
+        { "citizenship_vote_channel", "" },
         { "president_role_id", "" },
-        { "save_data", "false" },
-        { "poll_time", "48" },
-        { "term_length", "336" }
+        { "citizen_role", "" },
+        { "save_data", false },
+        { "poll_time", 48D },
+        { "term_length", 336D },
+        { "bot_status", "Fuck communism" }
     };
     
 
@@ -41,8 +39,8 @@ internal static class Program {
 
         // Config
         try {
-            ConfigManager configManager = new ("config.json", DefaultConfig);
-            Config = configManager.LoadConfig();
+            Config config = new(DefaultConfig);
+            GlobalConfig.Init(config);
         }
         catch (Exception e) {
             Logger.Error("Failed to load config: " + e);
@@ -51,13 +49,13 @@ internal static class Program {
         }
         
         // Storage
-        switch (Config["storage_service"]) {
+        switch (GlobalConfig.Config["storage_service"].Text) {
             case "file":
-                StorageService = new FileStorageService();
+                StorageService = new SqliteStorageService();
                 break;
             
             default:
-                Logger.Error("Unknown storage service: " + Config["storage_service"]);
+                Logger.Error("Unknown storage service: " + GlobalConfig.Config["storage_service"]);
                 Logger.WaitFlush();
                 return 1;
         }
@@ -74,7 +72,7 @@ internal static class Program {
         // This event gets fired when the user tried to stop the bot with Ctrl+C or similar.
         Console.CancelKeyPress += (_, _) => {
             Logger.Info("Shutting down...");
-            if (Config["save_data"] == "true") {
+            if (GlobalConfig.Config["save_data"] == true) {
                 try {
                     Logger.Info("Saving data...");
                     StorageService.Deinit();
@@ -89,61 +87,8 @@ internal static class Program {
             Logger.WaitFlush();
             Environment.Exit(0);
         };
-        
-        if (args.Length != 0) {
 
-            switch (args[0].ToLower()) {
-                
-                default:
-                    Console.WriteLine("Unknown command");
-                    return 1;
-                
-                case "updatecommands":
-                    DiscordSocketClient client = new ();
-                    bool finished = false;
-                    client.Ready += () => {
-                        CommandManager.UpdateCommands(client);
-                        Logger.Info("Commands updated");
-                        finished = true;
-                        return Task.CompletedTask;
-                    };
-                    client.LoginAsync(TokenType.Bot, Config["token"]).Wait();
-                    client.StartAsync().Wait();
-                    while (!finished) {
-                        Thread.Sleep(100);
-                    }
-                    Logger.Debug("Command execution finished");
-                    Logger.WaitFlush();
-                    return 0;
-                
-                case "updatecommand":
-                    if (args.Length != 2) {
-                        Logger.Info("Usage: updatecommand <command>");
-                        Logger.WaitFlush();
-                        return 1;
-                    }
-                    DiscordSocketClient updateClient = new ();
-                    bool updateFinished = false;
-                    updateClient.Ready += () => {
-                        CommandManager.UpdateCommand(updateClient, args[1]);
-                        Logger.Info("Command updated");
-                        updateFinished = true;
-                        return Task.CompletedTask;
-                    };
-                    updateClient.LoginAsync(TokenType.Bot, Config["token"]).Wait();
-                    updateClient.StartAsync().Wait();
-                    while (!updateFinished) {
-                        Thread.Sleep(100);
-                    }
-                    Logger.Debug("Command execution finished");
-                    Logger.WaitFlush();
-                    return 0;
-
-            }
-        }
-        
-        // Init Services
-        ServiceManager.Init();
+        string? firstArg = args.Length != 0 ? args[0] : null;
         
         // Run bot
         List<DateTime> errors = new();
@@ -152,7 +97,7 @@ internal static class Program {
             Bot bot = new();
             try {
                 Logger.Info("Starting bot...");
-                bot.Run().Wait();
+                bot.Run(firstArg == "updatecommands", firstArg == "updatecommand" && args.Length > 1 ? args[1] : null).Wait();
                 Logger.Warn("Bot task exited unexpectedly");
                 break;
             }

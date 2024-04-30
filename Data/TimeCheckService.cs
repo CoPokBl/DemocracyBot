@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using DemocracyBot.Commands;
-using DemocracyBot.Data.Schemas;
 using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
@@ -9,226 +6,153 @@ namespace DemocracyBot.Data;
 
 public static class TimeCheckService {
     private static TimeSpan _termLength;
-    private static DateTime _nextSave = DateTime.Now.AddMinutes(1);
-    private static int _guildMembersMinusBots;
-    private static int _countCount = 99;
-    private static DiscordSocketClient? _client;
-    
-    private static int _activeThreadCount;
-    private static int _activeUpdatesCount;
+    private static DiscordSocketClient? _discord;
+    private static Timer? _eventTimer;
+    private static WaitingEvent? _upcomingEvent;
 
-    private static int ActiveThreads {
-        get => _activeThreadCount;
+    private static WaitingEvent UpcomingEvent {
+        get {
+            if (_upcomingEvent == null) {
+                LoadEvent();
+                return _upcomingEvent!.Value;
+            }
+            return _upcomingEvent.Value;
+        }
+
         set {
-            if (value is > 1 or < 0) {
-                Logger.Error("App tried to set active threads to " + value);
-                string stackTrace = new StackTrace().ToString();
-                GetAnnouncementsChannel(_client!).SendMessageAsync("App tried to set active threads to " + value + "\n" + stackTrace);
-                throw new Exception("App tried to set active threads to " + value);
-            }
-            _activeThreadCount = value;
+            _upcomingEvent = value;
+            SetEvent();
         }
     }
-    
-    private static int ActiveUpdates {
-        get => _activeUpdatesCount;
+
+    private static Timer? EventTimer {
+        get => _eventTimer;
         set {
-            if (value is > 1 or < 0) {
-                Logger.Error("App tried to set active updates to " + value);
-                string stackTrace = new StackTrace().ToString();
-                GetAnnouncementsChannel(_client!).SendMessageAsync("App tried to set active threads to " + value + "\n" + stackTrace);
-                throw new Exception("App tried to set active updates to " + value);
-            }
-            _activeUpdatesCount = value;
+            _eventTimer?.Dispose();
+            _eventTimer = value;
         }
     }
 
-    public static void StartThread(DiscordSocketClient client) {
-        _client = client;
-        _termLength = TimeSpan.FromHours(Convert.ToDouble(Program.Config!["term_length"]));
+    public static void Start(DiscordSocketClient client) {
+        _discord = client;
+        _termLength = TimeSpan.FromHours(GlobalConfig.Config["term_length"]);
 
-        // Start the thread that checks for events
-        new Thread(() => {
-            ActiveThreads++;
-            while (true) {
-                try {
-                    Update(client);
-                }
-                catch (Exception e) {
-                    Logger.Error("Error in TimeCheckService.Update: " + e.Message);
-                    Logger.Error(e);
-                    GetAnnouncementsChannel(client).SendMessageAsync(e.ToString());
-                }
-                Thread.Sleep(new TimeSpan(0, 0, 5)); // Run every 5 seconds
-            }
-        }).Start();
+        UpdateTimes();
     }
 
-    private static async void Update(DiscordSocketClient client) {
-        ActiveUpdates++;
-        SocketGuild guild = client.GetGuild(ulong.Parse(Program.Config!["server_id"]));
+    public static void UpdateTimes() {
+        if (UpcomingEvent == WaitingEvent.None) {  // Check if it's already passed
+            Logger.Info("State was none, if this isn't a new db then this is an error");
+            UpcomingEvent = WaitingEvent.PollStart;
+            CurrentEventComplete(UpcomingEvent);
+        }
 
-        _countCount++;
-        if (_countCount >= 100) {
-            _countCount = 0;
-            _guildMembersMinusBots = guild.Users.Count(u => !u.IsBot);
-            //Logger.Debug("Guild members minus bots update: " + _guildMembersMinusBots);
-        }
-        
-        // Check for save event
-        if (_nextSave < DateTime.Now) {
-            Program.StorageService.Save();
-            _nextSave = DateTime.Now.AddMinutes(1);
-        }
-        
-        // Check to see if the poll is over
-        Poll? poll = Program.StorageService.GetCurrentPoll();
-        if (poll != null) {
-            DateTime time = DateTime.FromBinary(poll.PollEnd);
+        switch (UpcomingEvent) {
+            case WaitingEvent.TermEnd: {
+                TimeSpan? timeTillEnd = null;
+                if (timeTillEnd == null || timeTillEnd < TimeSpan.Zero) {
+                    if (timeTillEnd != null) CurrentEventComplete(UpcomingEvent);
+                    timeTillEnd = Program.StorageService.GetCurrentTerm()!.TermEnd - DateTime.Now;
+                }
+                EventTimer = new Timer(CurrentEventComplete, UpcomingEvent, timeTillEnd.Value, Timeout.InfiniteTimeSpan);
+                break;
+            }
+
+            case WaitingEvent.PollStart: {
+                TimeSpan? timeTillEnd = null;
+                while (timeTillEnd == null || timeTillEnd < TimeSpan.Zero) {
+                    if (timeTillEnd != null) CurrentEventComplete(UpcomingEvent);
+                    timeTillEnd = Program.StorageService.GetCurrentTerm()!.TermEnd - TimeSpan.FromHours(GlobalConfig.Config["poll_time"]) - DateTime.Now;
+                }
+                EventTimer = new Timer(CurrentEventComplete, UpcomingEvent, timeTillEnd.Value, Timeout.InfiniteTimeSpan);
+                break;
+            }
             
-            // if its past PollEnd, then end the poll
-            if (DateTime.UtcNow > time) {
-                ulong winner = client.CurrentUser.Id;
-                int votes = 0;
-                try {
-                    Program.StorageService.EndPoll(out winner, out votes);
-                    Logger.Debug("Poll Was Ended Successfully, winner: " + winner + " votes: " + votes);
-                }
-                catch (Exception e) {
-                    Logger.Debug(e);
-                    // Ignore errors and have the winner be the bot
-                    // The only error that should occur is if no one voted
-                }
-                Program.StorageService.NullifyPoll();
+            case WaitingEvent.None:
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
-                // Add relative timestamp because it updates automatically on the client
-                TimestampTag timestamp = TimestampTag.FromDateTime(
-                    DateTime.Now.Add(_termLength), 
-                    TimestampTagStyles.Relative);
+    private static async void CurrentEventComplete(object? o) {
+        WaitingEvent e = (WaitingEvent) o!;
+
+        switch (e) {
+            case WaitingEvent.TermEnd: {  // The election is over
+                // Does president have the role?
+                ulong oldPresident = Program.StorageService.GetCurrentTerm()!.PresidentId;
+                SocketGuild guild = _discord!.GetGuild(Utils.Pucv("server_id"));
+                SocketGuildUser? gOldUser = guild.GetUser(oldPresident);
                 
-                SocketGuildUser winnerMember = guild.GetUser(winner);
+                ulong roleId = Utils.Pucv("president_role_id");
+                if (gOldUser != null && gOldUser.Roles.Any(r => r.Id == roleId)) {
+                    await gOldUser.RemoveRoleAsync(roleId);
+                }
 
-                if (winnerMember == null) {
-                    // That user is no longer in the server
-                    Debug.Assert(client != null);
-                    SocketUser user = client.GetUser(winner);
-                    string winnerUserMention;
-                    if (user == null) {
-                        winnerUserMention = "<@" + winner + ">";
-                    }
-                    else {
-                        winnerUserMention = user.Mention;
-                    }
-                    Debug.Assert(timestamp != null);
-                    Debug.Assert(winnerMember == null);
-                    await GetAnnouncementsChannel(client).SendMessageAsync(
-                        embed: CommandManager.GetEmbed(
-                            "The Poll Has Ended!",
-                            $"The winner is: {winnerUserMention} with {votes} votes! " +
-                            "However they are nowhere to be found, so I'll be stepping in as acting president. " +
-                            $"(Next election: {timestamp})",
-                            ResponseType.Success
-                        ).Build()
-                    );
-                    winnerMember = guild.GetUser(client.CurrentUser.Id);
+                ulong newPresident = Program.StorageService.GetPoll()!.GetWinner();
+                SocketGuildUser? gNewUser = guild.GetUser(newPresident);
+                if (newPresident != 0 && gNewUser != null) {  // Can be zero in edge cases
+                    await gNewUser.AddRoleAsync(roleId);
+                }
+
+                string name;
+                if (gNewUser == null) {
+                    SocketUser? newUser = _discord.GetUser(newPresident);
+                    name = newUser == null ? newPresident.ToString() : newUser.Mention;
                 }
                 else {
-                    await GetAnnouncementsChannel(client).SendMessageAsync(
-                        embed: CommandManager.GetEmbed(
-                            "The Poll Has Ended!", 
-                            $"The Winner is: {winnerMember.Mention} with {votes} votes! (Next election: {timestamp})", 
-                            ResponseType.Success
-                        ).Build()
-                    );
-                }
-                Logger.Debug("Poll Ended Message Sent");
-
-                // Take role away from current president
-                // Make sure this is before giving the role because if the same person was elected again then it would give the role then take it
-                Term? cTerm = Program.StorageService.GetCurrentTerm();
-                if (cTerm != null) {
-                    SocketGuildUser? oldPresident = guild.GetUser(cTerm.PresidentId);
-                    oldPresident?.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"])).Wait();
+                    name = gNewUser.Mention;
                 }
 
-                // Give them the role
-                await winnerMember.AddRoleAsync(ulong.Parse(Program.Config["president_role_id"]));
+                DateTime nextTermEnd = DateTime.Now + _termLength;
+                string nextElection =
+                    TimestampTag.FromDateTime(nextTermEnd - TimeSpan.FromHours(GlobalConfig.Config["poll_time"])).ToString(TimestampTagStyles.Relative);
                 
-                // Set new president
-                Program.StorageService.SetCurrentTerm(new Term {
-                    PresidentId = winnerMember.Id,
-                    TermStart = DateTime.UtcNow.ToBinary(),
-                    TermEnd = DateTime.UtcNow.Add(_termLength).ToBinary(),
-                    RiotVotes = new List<ulong>()
-                });
-                
-                // Dont check the term
-                ActiveUpdates--;
-                return;
+                Program.StorageService.CreateTerm(newPresident, DateTime.Now, nextTermEnd);
+                Utils.Announce(_discord, $"{name} has won the election! The next election is {nextElection}.");
+                UpcomingEvent = WaitingEvent.PollStart;
+                break;
             }
-        }
 
-        // Check to see if the term is over
-        Term? term = Program.StorageService.GetCurrentTerm();
-        if (term != null && poll == null && DateTime.UtcNow > DateTime.FromBinary(term.TermEnd)) TermEnd(client);
-        
-        // Check to see if a riot has been triggered
-        if (term != null) {
-            double percentOfPeopleWantingToOverthrow = term.RiotVotes.Count / ((double)_guildMembersMinusBots - 1);
-            if (percentOfPeopleWantingToOverthrow > 0.5) {
-                // Riot has been triggered
-                Logger.Debug("Riot has been triggered");
-                // Get the president
-                SocketGuildUser president = guild.GetUser(term.PresidentId);
-                await president.RemoveRoleAsync(ulong.Parse(Program.Config["president_role_id"]));
-                await GetAnnouncementsChannel(client)
-                    .SendMessageAsync(embed: 
-                        CommandManager.GetEmbed(
-                            "Riot!", 
-                            "The president has been overthrown!", 
-                            ResponseType.Success).Build());
-                Logger.Debug("Riot Message Sent");
-                term = null;
-                Program.StorageService.SetCurrentTerm(term!);
+            case WaitingEvent.PollStart: {
+                DateTime termEnd = Program.StorageService.GetCurrentTerm()!.TermEnd;
+                string timestamp = TimestampTag.FromDateTime(termEnd).ToString(TimestampTagStyles.Relative);
+                Utils.Announce(_discord!, $"The election has begun! Ends {timestamp}.");
+                UpcomingEvent = WaitingEvent.TermEnd;
+                break;
             }
+            
+            case WaitingEvent.None:
+            default:
+                throw new ArgumentOutOfRangeException();
         }
-
-        // If there has never been an election and there isn't one currently then start one
-        if (poll == null && term == null) TermEnd(client);
-        ActiveUpdates--;
     }
 
-    private static async void TermEnd(DiscordSocketClient client) {
-        Logger.Debug("Term Ended");
-        Program.StorageService.StartNewPoll();
-        
-        // Add relative timestamp because it updates automatically on the client
-        TimestampTag timestamp = TimestampTag.FromDateTime(
-            DateTime.FromBinary(Program.StorageService.GetCurrentPoll()!.PollEnd).ToLocalTime(), 
-            TimestampTagStyles.Relative);
-                
-        await GetAnnouncementsChannel(client).SendMessageAsync(
-            embed: CommandManager.GetEmbed(
-                $"The Election Has Began! (Ends {timestamp})", 
-                "Do /vote to vote for the next president!", 
-                ResponseType.Success
-            ).Build()
-        );
-        Logger.Debug("Election Message Sent");
+    private static void LoadEvent() {
+        string state = Program.StorageService.GetState();
+        _upcomingEvent = state switch {
+            "none" => WaitingEvent.None,
+            "termend" => WaitingEvent.TermEnd,
+            "pollstart" => WaitingEvent.PollStart,
+            _ => throw new Exception("Invalid state")
+        };
     }
 
-    private static SocketTextChannel GetAnnouncementsChannel(DiscordSocketClient client) {
-        if (client == null) throw new Exception("client is null");
-        Logger.Debug(Program.Config!["server_id"]);
-        SocketGuild? guild = client.GetGuild(ulong.Parse(Program.Config["server_id"]));
-        if (guild == null) {
-            Logger.Debug("guild is null");
-        }
-        SocketGuildChannel? server = guild!.GetChannel(ulong.Parse(Program.Config["announcements_channel_id"]));
-        if (server == null) {
-            Logger.Debug("server is null");
-        }
-        return (SocketTextChannel) server!;
+    private static void SetEvent() {
+        Program.StorageService.SetState(UpcomingEvent switch {
+            WaitingEvent.None => "none",
+            WaitingEvent.TermEnd => "termend",
+            WaitingEvent.PollStart => "pollstart",
+            _ => throw new Exception("Invalid state")
+        });
     }
+
     
+
+    enum WaitingEvent {
+        TermEnd,
+        PollStart,
+        None
+    }
+
 }

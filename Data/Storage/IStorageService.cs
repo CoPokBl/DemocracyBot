@@ -5,15 +5,26 @@ namespace DemocracyBot.Data.Storage;
 public interface IStorageService {
     void Init();
     void Deinit();
-    void Save();
 
     void RegisterVote(ulong user, ulong vote);
-    
+    void RegisterCitizenshipVote(ulong user, ulong target);
+    void RevokeCitizenshipVote(ulong user, ulong target);
+    void AddCitizen(ulong user);
+    void CreateTerm(ulong president, DateTime start, DateTime end);
+    void RegisterRiot(ulong user);
+    void RevokeRiot(ulong user);
+    void SetCurrentTermEnd(DateTime end);
+    void SetState(string state);
+
+    Dictionary<ulong, int> TallyVotes();
+    int CountCitizenshipVotesFor(ulong user);
+    int CountCitizens();
+    bool IsCitizen(ulong user);
+    int CountRioters();
     Term? GetCurrentTerm();
-    void SetCurrentTerm(Term term);
-    
-    Poll? GetCurrentPoll();
-    void StartNewPoll();
-    void EndPoll(out ulong winner, out int votes);
-    void NullifyPoll();
+    bool IsRioting(ulong user);
+    string GetState();
+
+    void ClearVotes();
+    void ClearRioters();
 }

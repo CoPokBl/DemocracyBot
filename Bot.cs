@@ -1,15 +1,14 @@
-using DemocracyBot.Commands;
 using DemocracyBot.Data;
-using DemocracyBot.EventHandlers;
 using Discord;
 using Discord.WebSocket;
 using GeneralPurposeLib;
+using SimpleDiscordNet;
 
 namespace DemocracyBot; 
 
 public class Bot {
     
-    private static DiscordSocketClient? _client;
+    private static SimpleDiscordBot? _client;
     private static CancellationTokenSource _cts;
     private static bool _hasBeenInitialized;
     private static bool _hasReadied;
@@ -30,44 +29,37 @@ public class Bot {
     }
 
     public static bool IsMe(SocketUser user) {
-        return user.Id == _client!.CurrentUser.Id;
+        return user.Id == _client!.Client.CurrentUser.Id;
     }
 
-    public async Task Run() {
-        DiscordSocketConfig config = new() {
-            GatewayIntents = GatewayIntents.All
-        };
-        _client = new DiscordSocketClient(config);
-
+    public async Task Run(bool updateAllCommands = false, string? updateCommand = null) {
+        _client = new SimpleDiscordBot(GlobalConfig.Config["token"]);
+        CitizenshipManager.Discord = _client.Client;
+        
         // Events
+        _client.Client.Ready += ClientReady;
+        _client.Client.UserJoined += CitizenshipManager.UserJoinedGuild;
         _client.Log += Log;
-        _client.Ready += ClientReady;
-        _client.SlashCommandExecuted += SlashCommandHandler;
-        _client.MessageReceived += MessageHandler.OnMessage;
+        
+        await _client.StartBot();
 
-        await _client.LoginAsync(TokenType.Bot, Program.Config!["token"]);
-        await _client.StartAsync();
+        if (updateAllCommands) {
+            _client.Client.Ready += async () => _client.UpdateCommands();
+        }
+        else if (updateCommand != null) {
+            _client.Client.Ready += async () => _client.UpdateCommand(updateCommand);
+        }
         
         // Block this task until the program is closed.
         await Task.Delay(-1, _cts.Token);
         Logger.Warn("Bot is shutting down");
     }
     
-    private Task SlashCommandHandler(SocketSlashCommand command) {
-        try {
-            CommandManager.Invoke(command, _client!);
-        }
-        catch (Exception e) {
-            Logger.Error(e);
-        }
-        return Task.CompletedTask;
-    }
-    
     private async Task ClientReady() {
         Logger.Debug("Client ready");
-        await _client!.SetGameAsync("Fuck communism");
+        await _client!.Client.SetActivityAsync(new CustomStatusGame(GlobalConfig.Config["bot_status"]));
         if (!_hasReadied) {  // Don't run these things twice
-            TimeCheckService.StartThread(_client);
+            TimeCheckService.Start(_client.Client);
         }
         _hasReadied = true;
     }

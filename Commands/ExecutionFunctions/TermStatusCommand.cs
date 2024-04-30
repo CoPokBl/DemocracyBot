@@ -1,22 +1,27 @@
+using System.Diagnostics;
 using DemocracyBot.Data.Schemas;
 using Discord;
 using Discord.WebSocket;
+using SimpleDiscordNet.Commands;
 
 namespace DemocracyBot.Commands.ExecutionFunctions; 
 
-public class TermStatusCommand : ICommandExecutionHandler {
+public class TermStatusCommand {
+    
+    [SlashCommand("term-status", "Display information about the current term")]
     public async Task Execute(SocketSlashCommand cmd, DiscordSocketClient client) {
         Term? term = Program.StorageService.GetCurrentTerm();
-        if (term.IsNull()) {
-            await cmd.RespondWithEmbedAsync("Error", "No term is currently in progress.", ResponseType.Error);
-            return;
-        }
+        Debug.Assert(term != null);
+
+        string president = term.PresidentId == 0 ? "None" : (await client.GetUserAsync(term!.PresidentId)).Mention;
+        int rioters = Program.StorageService.CountRioters();
+        
         await cmd.RespondWithEmbedAsync(
-            "Term Status", 
-            $"President: {(await client.GetUserAsync(term!.PresidentId)).Mention}\n" +
-            $"Term Started {TimestampTag.FromDateTime(DateTime.FromBinary(term.TermStart), TimestampTagStyles.Relative)}\n" +
-            $"Term Ends {TimestampTag.FromDateTime(DateTime.FromBinary(term.TermEnd), TimestampTagStyles.Relative)}\n" +
-            $"Rioting: {term.RiotVotes.Count}", 
+            "Presidency", 
+            $"President: {president}\n" +
+            $"Term Started {TimestampTag.FromDateTime(term.TermStart, TimestampTagStyles.Relative)}\n" +
+            $"Term Ends {TimestampTag.FromDateTime(term.TermEnd, TimestampTagStyles.Relative)}\n" +
+            $"Rioting: {rioters}/{Program.StorageService.GetRequiredRioters()}", 
             ResponseType.Success);
     }
 }
