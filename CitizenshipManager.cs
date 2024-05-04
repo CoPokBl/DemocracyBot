@@ -52,10 +52,11 @@ public class CitizenshipManager {
     }
 
     private static Embed GetCitizenshipVoteEmbedFor(IUser user) {
-        int votesFor = Program.StorageService.CountCitizenshipVotesFor(user.Id);
-        int requiredVotes = Utils.GetCitizenshipVotesRequired();
-        Logger.Debug($"{user.Username} has {votesFor} for out of {requiredVotes}");
-        if (votesFor < requiredVotes) {
+        bool isCitizen = user.IsCitizen();
+        
+        if (!isCitizen) {
+            int votesFor = Program.StorageService.CountCitizenshipVotesFor(user.Id);
+            int requiredVotes = Utils.GetCitizenshipVotesRequired();
             Embed voteMsg = CommandUtils.GetEmbed(
                 "Citizenship Vote: " + user.Username,
                 $"Should {user.Mention} be made a citizen?\n**Approvals:** *{votesFor}*/*{requiredVotes}*", 
@@ -65,7 +66,7 @@ public class CitizenshipManager {
         }
         else {
             Embed voteMsg = CommandUtils.GetEmbed(
-                "Citizenship Vote: " + user.Mention,
+                "Citizenship Vote: " + user.Username,
                 $"**Approved!**", 
                 ResponseType.Success, 
                 new EmbedFooterBuilder().WithText(user.Id.ToString()));
@@ -78,10 +79,11 @@ public class CitizenshipManager {
         SocketGuildUser? user = Discord!.GetGuild(Utils.Pucv("server_id")).GetUser(userid);
 
         Program.StorageService.AddCitizen(userid);
-        await interaction.Message.ModifyAsync(m => {
-            m.Embed = GetCitizenshipVoteEmbedFor(user);
-            m.Components = null;
-        });
+        // await interaction.Message.ModifyAsync(m => {
+        //     m.Embed = GetCitizenshipVoteEmbedFor(user);
+        //     m.Components = null;
+        // });
+        await interaction.Message.DeleteAsync();
         
         if (user == null) {  // Not much we can do
             return;
@@ -105,11 +107,20 @@ public class CitizenshipManager {
         string targetIdString = component.Message.Embeds.First().Footer!.Value.Text;
         ulong targetId = ulong.Parse(targetIdString);
         IUser? user = await client.GetUserAsync(targetId);
+        
         if (user == null) {
             await component.RespondWithEmbedAsync(
                 "Citizenship",
                 "This user no longer exists.", 
                 ResponseType.Error, 
+                ephemeral: true);
+            return;
+        }
+
+        if (user.IsCitizen()) {
+            await component.RespondWithEmbedAsync(
+                "Citizenship", 
+                $"{user.Mention} is already a citizen!",
                 ephemeral: true);
             return;
         }
