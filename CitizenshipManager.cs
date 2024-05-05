@@ -125,6 +125,7 @@ public class CitizenshipManager {
             return;
         }
         
+        Program.StorageService.RevokeCitizenshipVote(component.User.Id, targetId);
         Program.StorageService.RegisterCitizenshipVote(component.User.Id, targetId);
         await component.RespondWithEmbedAsync(
             "Citizenship", 
