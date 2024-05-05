@@ -76,7 +76,9 @@ public class CitizenshipManager {
 
     private static async void GrantCitizenship(ulong userid, SocketMessageComponent interaction) {
         ISocketMessageChannel channel = GetChannel();
-        SocketGuildUser? user = Discord!.GetGuild(Utils.Pucv("server_id")).GetUser(userid);
+        SocketGuild guild = Discord!.GetGuild(Utils.Pucv("server_id"));
+        await guild.DownloadUsersAsync();
+        SocketGuildUser? user = guild.GetUser(userid);
 
         Program.StorageService.AddCitizen(userid);
         // await interaction.Message.ModifyAsync(m => {
