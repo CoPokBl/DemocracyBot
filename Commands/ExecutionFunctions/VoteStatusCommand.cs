@@ -17,10 +17,6 @@ public class VoteStatusCommand {
             return;
         }
         
-        foreach (KeyValuePair<ulong, int> voteCount in poll.Votes) {
-            Logger.Debug("Votecount: " + voteCount.Key + " " + voteCount.Value);
-        }
-        
         string message = poll.Votes.Aggregate("", (current, kv) => {
             Task<IUser> userTask = GetUserSync(kv.Key, client);
             userTask.Wait();

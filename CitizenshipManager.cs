@@ -35,12 +35,12 @@ public class CitizenshipManager {
             emote: Emoji.Parse(":white_check_mark:"));
         ButtonBuilder rejectButton =
             new("Reject", "reject-citizen", ButtonStyle.Danger, emote: Emoji.Parse(":x:"));
-        
-        ComponentBuilder componentBuilder = ComponentBuilder.FromComponents(new IMessageComponent[] {
-            approveButton.Build(),
-            rejectButton.Build()
-        });
-        await channel.SendMessageAsync(embed: GetCitizenshipVoteEmbedFor(user), components: componentBuilder.Build());
+
+        MessageComponent component = new ComponentBuilder()
+            .WithButton(approveButton)
+            .WithButton(rejectButton)
+            .Build();
+        await channel.SendMessageAsync(embed: GetCitizenshipVoteEmbedFor(user), components: component);
     }
 
     private static async Task GiveRole(IGuildUser user) {

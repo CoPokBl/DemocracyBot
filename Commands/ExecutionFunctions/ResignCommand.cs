@@ -26,9 +26,8 @@ public class ResignCommand {
             return;
         }
         
-        Utils.TriggerElection(client);
-        
         Utils.Announce(client, $"{cmd.User.Mention} has resigned from the presidency.");
+        Utils.TriggerElection(client);
         await cmd.RespondWithEmbedAsync("Adios", "You have resigned as president.", ResponseType.Success);
     }
     

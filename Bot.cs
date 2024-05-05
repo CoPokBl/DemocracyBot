@@ -33,7 +33,9 @@ public class Bot {
     }
 
     public async Task Run(bool updateAllCommands = false, string? updateCommand = null) {
-        _client = new SimpleDiscordBot(GlobalConfig.Config["token"]);
+        _client = new SimpleDiscordBot(GlobalConfig.Config["token"],   // Needs GuildMembers to handle people
+            GatewayIntents.GuildMembers | 
+            GatewayIntents.AllUnprivileged);
         CitizenshipManager.Discord = _client.Client;
         
         // Events
