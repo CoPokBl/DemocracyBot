@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS state (
     }
 
     public void RegisterVote(ulong user, ulong vote) {
-        using SQLiteCommand cmd = new("INSERT OR IGNORE INTO votes (voter, votee) VALUES (@voter, @votee);", _connection);
+        using SQLiteCommand cmd = new("INSERT OR REPLACE INTO votes (voter, votee) VALUES (@voter, @votee);", _connection);
         cmd.Parameters.AddWithValue("voter", user);
         cmd.Parameters.AddWithValue("votee", vote);
         cmd.ExecuteNonQuery();
