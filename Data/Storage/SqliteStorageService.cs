@@ -94,6 +94,12 @@ CREATE TABLE IF NOT EXISTS state (
         cmd.ExecuteNonQuery();
     }
 
+    public void RemoveCitizen(ulong user) {
+        using SQLiteCommand cmd = new("DELETE FROM citizen_status WHERE user = @user;", _connection);
+        cmd.Parameters.AddWithValue("user", user);
+        cmd.ExecuteNonQuery();
+    }
+
     public void CreateTerm(ulong president, DateTime start, DateTime end) {
         using SQLiteCommand cmd = new("INSERT INTO terms (president, term_start, term_end) VALUES (@president, @start, @end);", _connection);
         cmd.Parameters.AddWithValue("president", president);

@@ -10,6 +10,7 @@ public interface IStorageService {
     void RegisterCitizenshipVote(ulong user, ulong target);
     void RevokeCitizenshipVote(ulong user, ulong target);
     void AddCitizen(ulong user);
+    void RemoveCitizen(ulong user);
     void CreateTerm(ulong president, DateTime start, DateTime end);
     void RegisterRiot(ulong user);
     void RevokeRiot(ulong user);
